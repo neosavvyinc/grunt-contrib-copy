@@ -46,7 +46,7 @@ module.exports = function(grunt) {
       filePair.dest = grunt.util._.isArray(filePair.dest) ? filePair.dest : [filePair.dest];
 
       filePair.dest.forEach(function(fDest) {
-          if (!destMustExist || (destMustExist && (grunt.file.isDir(unixifyPath(path.join(fDest, src))) | grunt.file.isFile(fDest)))) {
+          if (!destMustExist || (destMustExist && (grunt.file.isDir(unixifyPath(fDest)) | grunt.file.isFile(fDest)))) {
               filePair.src.forEach(function(src) {
                 if (detectDestType(fDest) === 'directory') {
                   dest = (isExpandedPair) ? fDest : unixifyPath(path.join(fDest, src));

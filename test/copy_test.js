@@ -40,7 +40,7 @@ exports.copy = {
     test.expect(1);
 
     var actual = grunt.file.read('tmp/single.js');
-    var expected = grunt.file.read('test/expected/single.js');
+    var expected = grunt.file.read('t   est/expected/single.js');
     test.equal(expected, actual, 'should allow for single file copy');
 
     test.done();
