@@ -34,6 +34,7 @@ module.exports = function(grunt) {
 
     var dest;
     var isExpandedPair;
+    var destMustExist;
     var tally = {
       dirs: 0,
       files: 0
@@ -41,27 +42,33 @@ module.exports = function(grunt) {
 
     this.files.forEach(function(filePair) {
       isExpandedPair = filePair.orig.expand || false;
+      destMustExist = filePair.destMustExist || false;
+      filePair.dest = grunt.util._.isArray(filePair.dest) ? filePair.dest : [filePair.dest];
 
-      filePair.src.forEach(function(src) {
-        if (detectDestType(filePair.dest) === 'directory') {
-          dest = (isExpandedPair) ? filePair.dest : unixifyPath(path.join(filePair.dest, src));
-        } else {
-          dest = filePair.dest;
-        }
+      filePair.dest.forEach(function(fDest) {
+          if (!destMustExist || (destMustExist && (grunt.file.isDir(unixifyPath(path.join(fDest, src))) | grunt.file.isFile(fDest)))) {
+              filePair.src.forEach(function(src) {
+                if (detectDestType(fDest) === 'directory') {
+                  dest = (isExpandedPair) ? fDest : unixifyPath(path.join(fDest, src));
+                } else {
+                  dest = fDest;
+                }
 
-        if (grunt.file.isDir(src)) {
-          grunt.verbose.writeln('Creating ' + dest.cyan);
-          grunt.file.mkdir(dest);
-          tally.dirs++;
-        } else {
-          grunt.verbose.writeln('Copying ' + src.cyan + ' -> ' + dest.cyan);
-          grunt.file.copy(src, dest, copyOptions);
-          if (options.mode !== false) {
-            fs.chmodSync(dest, (options.mode === true) ? fs.lstatSync(src).mode : options.mode);
+                if (grunt.file.isDir(src)) {
+                  grunt.verbose.writeln('Creating ' + dest.cyan);
+                  grunt.file.mkdir(dest);
+                  tally.dirs++;
+                } else {
+                  grunt.verbose.writeln('Copying ' + src.cyan + ' -> ' + dest.cyan);
+                  grunt.file.copy(src, dest, copyOptions);
+                  if (options.mode !== false) {
+                    fs.chmodSync(dest, (options.mode === true) ? fs.lstatSync(src).mode : options.mode);
+                  }
+                  tally.files++;
+                }
+              });
           }
-          tally.files++;
-        }
-      });
+        });
     });
 
     if (tally.dirs) {
@@ -76,7 +83,9 @@ module.exports = function(grunt) {
   });
 
   var detectDestType = function(dest) {
-    if (grunt.util._.endsWith(dest, '/')) {
+    if (grunt.util._.isArray(dest)) {
+        return 'array';
+    } else if (grunt.util._.endsWith(dest, '/')) {
       return 'directory';
     } else {
       return 'file';
